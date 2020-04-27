@@ -1,0 +1,23 @@
+Kontrola unosa
+  - Provjeriti da li je uneseno vise brojeva nego sto ima LEDs DONE
+  - Provjeriti da li su svi uneseni karakteri brojevi DONE
+  - Provjeriti da li su uneseni brojevi izmedju 0 i maksimalnog broja LEDs DONE
+  - Kada se unosi boja provjeriti da li je unesena vrijednost izmedju 0 i 256 NE TREBA
+  - Provjeriti da li je neki broj unesen dvaput NE TREBA
+  
+Promjeniti sistem spasavanja upaljenih ledioda u sistem sa dvodimenzionalnim nizom
+  - Promjeniti serialReadToArr funkciju da prihvata 2D arrays DONE
+  - Promjeniti emptyArr funkciju da prihvata 2D arrays DONE
+  - Promjeniti printArr funkciju da prihvata 2D arrays DONE
+  - (Mozda) Napraviti serialReadToArr i emptyArr funkcije da prihvataju 1D arrays NE TREBA ZA SAD
+  - Napraviti funkciju koja rendera lediode koristeci novi sistem za boju DONE
+  
+Napraviti configuration array koji ce se moci ucitati sa sd kartice
+  - Napraviti array koji sadrzi broj ledioda, broj defaultnih boja i dafaultne boje DONE
+  - Napraviti novu funkciju za renderanje da koristi configuration array DONE
+  
+Izbaciti return 0 u void funkcijama
+BUG ako se unese pogresna boja arduino se mora restartat da bi se mogao opet koristiti DONE
+BUG ako se unese prevelik broj za broj lediode program udje u infinite loop(u while loop-u u serialReadToArr funkciji) (L1 1 0 1 3 1 2 1 5 1, numOfLeds stavljeno)
+
+TRENUTNO STANJE
