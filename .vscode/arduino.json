@@ -2,6 +2,6 @@
     "sketch": "Bluethooth_RGB_Control_V7_1.ino",
     "board": "arduino:avr:mega",
     "configuration": "cpu=atmega2560",
-    "port": "COM7",
+    "port": "COM4",
     "programmer": "AVR ISP"
 }

@@ -3,7 +3,7 @@
 #include <SPI.h>
 #include <SD.h>
 
-const int confArr[][3] = {{48}, {3}, {200, 0, 0}, {0, 0, 200}, {0, 200, 0}}; // Configuration array: number of LEDs, number of colors, colors
+const int confArr[][3] = {{49}, {3}, {200, 0, 0}, {0, 0, 200}, {0, 200, 0}}; // Configuration array: number of LEDs, number of colors, colors
 const int numOfLeds = confArr[0][0];                                         // Sets the number of LEDs from the configuration array
 const int ledSignalPin = 11;                                                 // Signal pin for LED matrix
 const int chipSelect = 53;                                                   // Pin number for the SD card chip select pin
@@ -18,7 +18,7 @@ CRGB leds[numOfLeds]; //Sets's up the RGB LEDs
 void setup()
 {
 
-  Serial.begin(9600);  //Initates serial cmunication with the PC
+  Serial.begin(74880); //Initates serial cmunication with the PC
   Serial1.begin(9600); //Initates serial cmunication with the bluethooth module
   while (!Serial)
   {
@@ -26,7 +26,7 @@ void setup()
   }
   FastLED.addLeds<WS2812, ledSignalPin, GRB>(leds, numOfLeds); //Initates LEDs
 
-  resetLeds();
+  resetLeds(true);
   initializeSDCard();
 
   myFile = SD.open("/");
@@ -53,17 +53,26 @@ void loop()
     {
 
     case 76: //Poslati L i redne brojeve ledioda koje treba upaliti, LL C L C L C ... (L = LED possition, C = LED default color)
-      Serial.println("Entered case 1");
+      //Serial.println();
+      //Serial.println("Entered case 1");
+      resetLeds(false);
+      ledCounter = 0;
+      memset(ledArr, 0, sizeof(ledArr));
       serialReadToArr(ledArr);
-      controlLeds(ledArr, confArr, sizeof(ledArr));
+      controlLeds(ledArr, confArr);
       break;
 
     case 82: //Slanje R gasi sve lediode
+      Serial.println();
       Serial.println("Entered case 2");
-      resetLeds();
+      resetLeds(false);
+      memset(ledArr, 0, sizeof(ledArr));
       break;
 
     case 83:
+      ledCounter = 0;
+      memset(ledArr, 0, sizeof(ledArr));
+      Serial.println();
       Serial.println("Entered case 3");
       while (!Serial1.available())
       {
@@ -71,43 +80,52 @@ void loop()
       int fileIndex = Serial1.read();
       readSDToArr(ledArr, boulders, 5, fileIndex);
       printArr(ledArr, ledCounter);
-      controlLeds(ledArr, confArr, sizeof(ledArr));
+      controlLeds(ledArr, confArr);
       break;
     };
   };
 }
 
-void resetLeds()
+void resetLeds(bool resetAll)
 { //Resets all LEDs
+  //Serial.println("Entered resetLeds function");
+  //Serial.println(ledCounter);
 
-  for (int i = 0; i < numOfLeds; i++)
+  if (resetAll)
   {
-    leds[i] = CRGB(0, 0, 0);
-  };
+    for (int i = 0; i < numOfLeds; i++)
+    {
+      //Serial.println("resetLed cycle");
+      leds[i] = CRGB(0, 0, 0);
+    };
+  }
+  else
+  {
+    for (int i = 0; i < ledCounter; i++)
+    {
+      //Serial.println("resetLed cycle");
+      leds[ledArr[i][0]] = CRGB(0, 0, 0);
+    }
+  }
   FastLED.show();
 }
 
-void controlLeds(int infArr[][2], int colorArr[][3], int infArrSize) //Turns on LEDs specified in the ledArr array
+void controlLeds(int infArr[][2], int colorArr[][3]) //Turns on LEDs specified in the ledArr array
 {
-
-  resetLeds();
-  Serial.println("Entered controlLeds function");
+  //Serial.println("Entered controlLeds function");
+  //Serial.println(ledCounter);
 
   for (int i = 0; i < ledCounter; i++)
   {
     leds[infArr[i][0]] = CRGB(colorArr[infArr[i][1] + 1][0], colorArr[infArr[i][1] + 1][1], colorArr[infArr[i][1] + 1][2]);
   };
-
   FastLED.show();
-  memset(infArr, 0, infArrSize);
-  ledCounter = 0;
 }
 
 void serialReadToArr(int fillArr[][2]) //Reads data from bluethooth module and stores them in a two dimensional array of an x by 2 size (only accepts numbers as high as the number of LEDs)
 {
 
-  Serial.println("Entered serialReadToArr function");
-  Serial.println("");
+  //Serial.println("Entered serialReadToArr function");
 
   byte currValue = 0;         // Holds value of the current recieved byte
   byte tmpStr[3] = {0, 0, 0}; // Temporerly holds recieved values until mergied in one number
@@ -221,22 +239,18 @@ void readSDToArr(int fillArr[][2], String filesArr[], int arrLen, int fileNum) /
 
   do
   {
-    tmpStr[digitCount] = currentFile.read(); // Get the next byte from the file
-
+    tmpStr[digitCount] = currentFile.read();                                                                             // Get the next byte from the file
     if (tmpStr[digitCount] == ' ' || tmpStr[digitCount] == '\r' || tmpStr[digitCount] == '\n' || tmpStr[digitCount] < 0) // Check if end of number
     {
-
       for (int i = digitCount - 1; i >= 0; i--) // Convert the digits in tmpStr and save them
       {
         fillArr[ledCounter][typeIndicator] = fillArr[ledCounter][typeIndicator] + ((int)tmpStr[i] - 48) * (pow(10, (digitCount - (i + 1))));
       }
       typeIndicator = !typeIndicator;
-
       if (!typeIndicator)
       {
         ledCounter++;
       };
-
       digitCount = 0;
     }
     else
@@ -244,6 +258,7 @@ void readSDToArr(int fillArr[][2], String filesArr[], int arrLen, int fileNum) /
       digitCount++;
     }
   } while (tmpStr[digitCount] >= 0); // Check if end of file
-
-  currentFile.close(); // Close the file
+  currentFile.close();               // Close the file
 }
+
+void emptyArr() {}
